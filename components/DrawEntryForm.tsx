@@ -4,9 +4,10 @@ import { useState } from "react";
 
 type Props = {
   onDrawAdded: () => void;
+  state?: string;
 };
 
-export default function DrawEntryForm({ onDrawAdded }: Props) {
+export default function DrawEntryForm({ onDrawAdded, state = "GA" }: Props) {
   const today = new Date().toISOString().split("T")[0];
   const [numbers, setNumbers] = useState("");
   const [drawDate, setDrawDate] = useState(today);
@@ -26,7 +27,7 @@ export default function DrawEntryForm({ onDrawAdded }: Props) {
     const res = await fetch("/api/draws", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ numbers, drawDate, period }),
+      body: JSON.stringify({ numbers, drawDate, period, state }),
     });
 
     const data = await res.json();

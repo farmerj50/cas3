@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import type { AdvancedPick, AdvancedResult, FunnelStep } from "@/lib/advanced-picks";
 
 type Algorithm = "combined" | "wheel" | "rundown";
@@ -24,6 +24,14 @@ const ALGO_META: Record<Algorithm, { label: string; description: string }> = {
 };
 
 function FunnelDisplay({ steps }: { steps: FunnelStep[] }) {
+  const [animated, setAnimated] = useState(false);
+
+  useEffect(() => {
+    setAnimated(false);
+    const t = setTimeout(() => setAnimated(true), 80);
+    return () => clearTimeout(t);
+  }, [steps]);
+
   return (
     <div className="space-y-2">
       {steps.map((step, i) => {
@@ -38,8 +46,11 @@ function FunnelDisplay({ steps }: { steps: FunnelStep[] }) {
               </div>
               <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-slate-800">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-violet-500 transition-all"
-                  style={{ width: `${pct}%` }}
+                  className="h-full rounded-full bg-linear-to-r from-cyan-500 to-violet-500 transition-all duration-700 ease-out"
+                  style={{
+                    width: animated ? `${pct}%` : "0%",
+                    transitionDelay: `${i * 100}ms`,
+                  }}
                 />
               </div>
             </div>
@@ -109,7 +120,7 @@ function PickGrid({
             </div>
             <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-slate-800">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-violet-500"
+                className="h-full rounded-full bg-linear-to-r from-cyan-500 to-violet-500"
                 style={{ width: `${((pick.score - min) / range) * 100}%` }}
               />
             </div>
@@ -123,16 +134,46 @@ function PickGrid({
   );
 }
 
-export default function AdvancedPickSystem({ onSaved }: { onSaved: () => void }) {
+type PlayType = "straight" | "box" | "combo";
+const PLAY_TYPE_INFO: Record<PlayType, string> = {
+  straight: "Exact order wins",
+  box: "Any order wins",
+  combo: "Both ways",
+};
+
+const FREE_PICK_LIMIT = 15;
+
+export default function AdvancedPickSystem({
+  onSaved,
+  isPremium = false,
+  state = "GA",
+  drawRefresh = 0,
+}: {
+  onSaved: () => void;
+  isPremium?: boolean;
+  state?: string;
+  drawRefresh?: number;
+}) {
   const [algorithm, setAlgorithm] = useState<Algorithm>("combined");
   const [numDigits, setNumDigits] = useState(7);
   const [seed, setSeed] = useState("");
   const [target, setTarget] = useState(60);
+  const [playType, setPlayType] = useState<PlayType>("box");
   const [result, setResult] = useState<AdvancedResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [saving, setSaving] = useState<string | null>(null);
   const [savedCount, setSavedCount] = useState(0);
+  const [staleRefresh, setStaleRefresh] = useState(0);
+
+  // When new draws are imported, mark existing results as stale
+  useEffect(() => {
+    if (drawRefresh > 0 && result !== null) {
+      setStaleRefresh(drawRefresh);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [drawRefresh]);
 
   const run = useCallback(async () => {
     setLoading(true);
@@ -143,6 +184,7 @@ export default function AdvancedPickSystem({ onSaved }: { onSaved: () => void })
         digits: numDigits.toString(),
         seed: seed || "000",
         target: target.toString(),
+        state,
       });
       const res = await fetch(`/api/advanced-picks?${params}`);
       if (!res.ok) throw new Error("Failed to fetch");
@@ -156,27 +198,43 @@ export default function AdvancedPickSystem({ onSaved }: { onSaved: () => void })
     }
   }, [algorithm, numDigits, seed, target]);
 
-  async function savePick(pick: AdvancedPick) {
+  async function savePick(pick: AdvancedPick): Promise<boolean> {
     setSaving(pick.numbers);
-    await fetch("/api/picks", {
+    setSaveError(null);
+
+    const res = await fetch("/api/picks", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         numbers: pick.numbers,
         score: pick.score,
         algorithm: `advanced-${algorithm}`,
+        playType,
       }),
     });
+
+    const data = await res.json();
     setSaving(null);
+
+    if (!res.ok) {
+      setSaveError(data.error || "Save failed — are you logged in?");
+      return false;
+    }
+
     setSavedCount((n) => n + 1);
     onSaved();
+    return true;
   }
 
   async function saveAll() {
     if (!result) return;
+    setSaveError(null);
+    let failed = 0;
     for (const pick of result.picks.slice(0, 20)) {
-      await savePick(pick);
+      const ok = await savePick(pick);
+      if (!ok) failed++;
     }
+    if (failed > 0) setSaveError(`${failed} pick${failed > 1 ? "s" : ""} failed to save.`);
   }
 
   return (
@@ -276,6 +334,26 @@ export default function AdvancedPickSystem({ onSaved }: { onSaved: () => void })
           </div>
         </div>
 
+        {/* Play type */}
+        <div>
+          <label className="mb-1.5 block text-xs text-slate-400">Play type</label>
+          <div className="flex gap-1 rounded-xl border border-white/10 bg-slate-900 p-1">
+            {(["straight", "box", "combo"] as PlayType[]).map((pt) => (
+              <button
+                key={pt}
+                onClick={() => setPlayType(pt)}
+                title={PLAY_TYPE_INFO[pt]}
+                className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
+                  playType === pt ? "bg-cyan-400 text-slate-950" : "text-slate-400 hover:text-white"
+                }`}
+              >
+                {pt.charAt(0).toUpperCase() + pt.slice(1)}
+              </button>
+            ))}
+          </div>
+          <div className="mt-1 text-xs text-slate-500">{PLAY_TYPE_INFO[playType]}</div>
+        </div>
+
         <button
           onClick={run}
           disabled={loading || (algorithm === "rundown" && seed.length !== 3)}
@@ -288,6 +366,21 @@ export default function AdvancedPickSystem({ onSaved }: { onSaved: () => void })
       {error && (
         <div className="mt-4 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
           {error}
+        </div>
+      )}
+
+      {/* Stale data notice */}
+      {result && staleRefresh > 0 && (
+        <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3">
+          <span className="text-sm text-amber-200">
+            New draws imported — these picks are based on older data.
+          </span>
+          <button
+            onClick={() => { setStaleRefresh(0); run(); }}
+            className="shrink-0 rounded-xl bg-amber-400 px-3 py-1.5 text-xs font-semibold text-slate-950"
+          >
+            Regenerate
+          </button>
         </div>
       )}
 
@@ -323,7 +416,35 @@ export default function AdvancedPickSystem({ onSaved }: { onSaved: () => void })
             </button>
           </div>
 
-          <PickGrid picks={result.picks} onSave={savePick} saving={saving} />
+          {saveError && (
+            <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+              {saveError}
+            </div>
+          )}
+
+          <div className="relative">
+            <PickGrid
+              picks={isPremium ? result.picks : result.picks.slice(0, FREE_PICK_LIMIT)}
+              onSave={savePick}
+              saving={saving}
+            />
+            {!isPremium && result.picks.length > FREE_PICK_LIMIT && (
+              <div className="mt-4 flex flex-col items-center gap-3 rounded-2xl border border-cyan-400/20 bg-slate-950/80 py-6 backdrop-blur">
+                <p className="text-sm font-semibold text-white">
+                  +{result.picks.length - FREE_PICK_LIMIT} more plays locked
+                </p>
+                <p className="text-xs text-slate-400">
+                  Premium unlocks all {result.picks.length} strategic plays
+                </p>
+                <a
+                  href="/upgrade"
+                  className="rounded-xl bg-linear-to-r from-cyan-400 to-sky-400 px-5 py-2 text-sm font-semibold text-slate-950 transition hover:scale-[1.01]"
+                >
+                  Unlock full list
+                </a>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>

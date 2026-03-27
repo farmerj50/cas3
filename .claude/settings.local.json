@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//d/Project/testmind/**)",
+      "Bash(pnpm --filter api tsc --noEmit)"
+    ]
+  }
+}

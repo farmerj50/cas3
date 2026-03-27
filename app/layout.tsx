@@ -1,9 +1,24 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Cash3 Probability Engine",
-  description: "Clean Cash 3 analytics dashboard with saved picks and weighted recommendations",
+  title: "Cash 3 Edge",
+  description: "Professional Pick-3 lottery analytics — hot digits, smart picks, real edge.",
+  applicationName: "Cash 3 Edge",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Cash 3 Edge",
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover", // lets content extend behind notch / home bar
+  themeColor: "#020b2d",
 };
 
 export default function RootLayout({

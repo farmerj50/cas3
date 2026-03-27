@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { useRouter } from "next/navigation";
 import HotColdChart from "@/components/HotColdChart";
 import PickGenerator from "@/components/PickGenerator";
@@ -12,15 +13,34 @@ import DrawEntryForm from "@/components/DrawEntryForm";
 import DrawHistoryTable from "@/components/DrawHistoryTable";
 import CountdownTimer from "@/components/CountdownTimer";
 import AdvancedPickSystem from "@/components/AdvancedPickSystem";
+import TodaysEdge from "@/components/TodaysEdge";
+import QuickInsights from "@/components/QuickInsights";
+import LastResult from "@/components/LastResult";
+import ElitePicks from "@/components/ElitePicks";
+import PerformanceInsights from "@/components/PerformanceInsights";
+import PremiumCard from "@/components/PremiumCard";
+import ManageBillingButton from "@/components/ManageBillingButton";
+import StateSelector from "@/components/StateSelector";
+import { getStateMeta } from "@/lib/states";
+import { isUserPremium, getPassTimeLeft } from "@/lib/premium";
+import BulkImportForm from "@/components/BulkImportForm";
+import AutoFetchButton from "@/components/AutoFetchButton";
 
 type User = {
   id: string;
   email: string;
+  tier: string;
+  state: string;
+  subscriptionStatus: string | null;
+  premiumExpiresAt: string | null;
   picks: {
     id: string;
     numbers: string;
     score: number;
     algorithm: string;
+    playType: string;
+    intendedDate: string | null;
+    intendedPeriod: string | null;
     createdAt: string;
     isHit: boolean | null;
     drawResult: string | null;
@@ -59,17 +79,20 @@ const [PERIOD_OPTIONS, DAYS_OPTIONS] = [
 ];
 
 export default function DashboardPage() {
+  usePushNotifications();
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState("all");
   const [days, setDays] = useState("all");
+  const [state, setState] = useState("GA");
   const [drawRefresh, setDrawRefresh] = useState(0);
+  const [drawTab, setDrawTab] = useState<"auto" | "bulk" | "single">("auto");
 
-  const loadAnalytics = useCallback(async (p: string, d: string) => {
+  const loadAnalytics = useCallback(async (p: string, d: string, s: string) => {
     try {
-      const res = await fetch(`/api/analytics?period=${p}&days=${d}`, { cache: "no-store" });
+      const res = await fetch(`/api/analytics?period=${p}&days=${d}&state=${s}`, { cache: "no-store" });
       if (!res.ok) return;
       const data = (await res.json()) as Analytics;
       setAnalytics(data);
@@ -82,17 +105,19 @@ export default function DashboardPage() {
     const res = await fetch("/api/me", { cache: "no-store" });
     if (!res.ok) {
       router.push("/login");
-      return false;
+      return null;
     }
     const data = await res.json();
     setUser(data.user);
-    return true;
+    return data.user;
   }, [router]);
 
   async function init() {
-    const ok = await loadUser();
-    if (!ok) return;
-    await loadAnalytics("all", "all");
+    const u = await loadUser();
+    if (!u) return;
+    const userState = u.state ?? "GA";
+    setState(userState);
+    await loadAnalytics("all", "all", userState);
     setLoading(false);
   }
 
@@ -101,8 +126,8 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
-    if (!loading) loadAnalytics(period, days);
-  }, [period, days, loading]);
+    if (!loading) loadAnalytics(period, days, state);
+  }, [period, days, state, loading]);
 
   async function handleLogout() {
     await fetch("/api/logout", { method: "POST" });
@@ -112,7 +137,7 @@ export default function DashboardPage() {
 
   function onDrawAdded() {
     setDrawRefresh((n) => n + 1);
-    loadAnalytics(period, days);
+    loadAnalytics(period, days, state);
     loadUser();
   }
 
@@ -126,52 +151,90 @@ export default function DashboardPage() {
 
   const hits = user?.picks.filter((p) => p.isHit === true).length || 0;
   const checked = user?.picks.filter((p) => p.isHit !== null).length || 0;
+  const isPremium = user ? isUserPremium(user) : false;
+  const passTimeLeft = user ? getPassTimeLeft(user) : null;
 
   return (
-    <main className="min-h-screen bg-slate-950 px-6 py-8 text-white">
-      <div className="mx-auto max-w-6xl space-y-8">
+    <main className="min-h-screen bg-[#020b2d] px-6 py-8 text-white">
+      <div className="mx-auto max-w-6xl space-y-6">
 
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <div className="text-sm text-slate-400">Logged in as</div>
-            <h1 className="text-3xl font-bold">{user?.email}</h1>
+            <div className="text-xs uppercase tracking-[0.25em] text-slate-500">
+              {getStateMeta(state)?.name} · {getStateMeta(state)?.game}
+            </div>
+            <h1 className="text-2xl font-bold text-white">{user?.email}</h1>
           </div>
-          <button
-            onClick={handleLogout}
-            className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 font-medium text-white transition hover:bg-white/10"
-          >
-            Logout
-          </button>
+          <div className="flex items-center gap-3">
+            <StateSelector
+              current={state}
+              onChange={(code) => setState(code)}
+            />
+            <CountdownTimer />
+            {passTimeLeft && (
+              <span className={`rounded-xl border px-3 py-1.5 text-xs font-semibold ${
+                passTimeLeft.urgent
+                  ? "border-red-400/30 bg-red-400/10 text-red-300"
+                  : "border-amber-400/30 bg-amber-400/10 text-amber-300"
+              }`}>
+                Pass · {passTimeLeft.label}
+              </span>
+            )}
+            {isPremium && user?.tier === "premium" && <ManageBillingButton />}
+            <button
+              onClick={handleLogout}
+              className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-white/10"
+            >
+              Logout
+            </button>
+          </div>
         </div>
 
-        {/* Stats bar */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-            <div className="text-sm text-slate-400">Exact order odds</div>
-            <div className="mt-2 text-xl font-semibold">{analytics?.exactOrderProbability}</div>
-          </div>
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-            <div className="text-sm text-slate-400">Box bet odds</div>
-            <div className="mt-2 text-xl font-semibold">{analytics?.anyOrderProbability}</div>
-          </div>
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-            <div className="text-sm text-slate-400">Saved picks</div>
-            <div className="mt-2 text-2xl font-semibold">
-              {user?.picks.length || 0}
-              {checked > 0 && (
-                <span className="ml-2 text-sm font-normal text-slate-400">
-                  {hits}/{checked} hit
-                </span>
-              )}
+        {/* TODAY'S EDGE — hero */}
+        {analytics && <TodaysEdge analytics={analytics} />}
+
+        {/* QUICK INSIGHTS strip */}
+        {analytics && <QuickInsights analytics={analytics} />}
+
+        {/* ELITE PICKS — premium teaser */}
+        {analytics && (
+          <ElitePicks picks={analytics.recommendedPicks} isPremium={isPremium} />
+        )}
+
+        {/* Demo data warning */}
+        {analytics && !analytics.usingRealData && (
+          <div className="flex items-start gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-5 py-4">
+            <span className="mt-0.5 text-lg">⚠</span>
+            <div>
+              <span className="font-semibold text-amber-300">Demo analytics active</span>
+              <span className="ml-2 text-sm text-amber-200/70">
+                Charts and recommendations are based on sample data.
+                Enter 20+ draws below to unlock your state&apos;s real patterns.
+              </span>
             </div>
           </div>
-          <CountdownTimer />
-        </div>
+        )}
 
-        {/* Filter bar */}
+        {/* Stats + filter bar */}
         <div className="flex flex-wrap items-center gap-3">
-          <span className="text-sm text-slate-400">Filter analytics:</span>
+          <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5">
+            <span className="text-xs text-slate-400">Straight odds</span>
+            <span className="font-semibold text-white">{analytics?.exactOrderProbability}</span>
+          </div>
+          <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5">
+            <span className="text-xs text-slate-400">Box odds</span>
+            <span className="font-semibold text-white">{analytics?.anyOrderProbability}</span>
+          </div>
+          {checked > 0 && (
+            <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5">
+              <span className="text-xs text-slate-400">Hit rate</span>
+              <span className="font-semibold text-cyan-300">{hits}/{checked}</span>
+            </div>
+          )}
+
+          <span className="text-slate-700">|</span>
+
           {PERIOD_OPTIONS.map((o) => (
             <button
               key={o.value}
@@ -185,7 +248,7 @@ export default function DashboardPage() {
               {o.label}
             </button>
           ))}
-          <span className="text-slate-600">|</span>
+          <span className="text-slate-700">|</span>
           {DAYS_OPTIONS.map((o) => (
             <button
               key={o.value}
@@ -201,28 +264,28 @@ export default function DashboardPage() {
           ))}
           {analytics && (
             <span className="ml-auto text-xs text-slate-500">
-              {analytics.usingRealData
-                ? `${analytics.totalDraws} real draws`
-                : "Using sample data"}
+              {analytics.usingRealData ? `${analytics.totalDraws} real draws` : "sample data"}
             </span>
           )}
         </div>
 
-        {/* Pick generator */}
+        {/* ADVANCED PICK SYSTEM — reduction engine first */}
+        <AdvancedPickSystem onSaved={() => loadUser()} isPremium={isPremium} state={state} drawRefresh={drawRefresh} />
+
+        {/* PICK GENERATOR — quick picks */}
         {analytics && (
-          <PickGenerator picks={analytics.recommendedPicks} onSaved={() => loadUser()} />
+          <PickGenerator
+            picks={analytics.recommendedPicks}
+            onSaved={() => loadUser()}
+            isPremium={isPremium}
+          />
         )}
 
-        {/* Advanced pick system */}
-        <AdvancedPickSystem onSaved={() => loadUser()} />
-
-        {/* Hot/cold + top pairs */}
+        {/* ANALYTICS — hot/cold + top pairs */}
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
             <h3 className="text-xl font-semibold">Hot and cold digits</h3>
-            <p className="mt-1 text-sm text-slate-300">
-              Cyan = hot, violet = cold.
-            </p>
+            <p className="mt-1 text-sm text-slate-300">Cyan = hot, violet = cold.</p>
             <div className="mt-6">
               {analytics && <HotColdChart data={analytics.digitStats} />}
             </div>
@@ -245,17 +308,68 @@ export default function DashboardPage() {
           {analytics && <SumChart data={analytics.sumStats} />}
         </div>
 
-        {/* Add draw + history */}
+        {/* HISTORY / PERFORMANCE */}
         <div className="grid gap-6 lg:grid-cols-2">
-          <DrawEntryForm onDrawAdded={onDrawAdded} />
-          <DrawHistoryTable refresh={drawRefresh} />
+          <div className="space-y-4">
+            {/* Tab switcher */}
+            <div className="flex gap-1 rounded-2xl border border-white/10 bg-slate-900/60 p-1">
+              {(["auto", "bulk", "single"] as const).map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setDrawTab(tab)}
+                  className={`flex-1 rounded-xl py-2 text-sm font-medium transition ${
+                    drawTab === tab
+                      ? "bg-cyan-400 text-slate-950"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  {tab === "auto" ? "Auto-Sync" : tab === "bulk" ? "Bulk Import" : "Add Single"}
+                </button>
+              ))}
+            </div>
+            {drawTab === "auto" ? (
+              <AutoFetchButton state={state} onImported={onDrawAdded} />
+            ) : drawTab === "bulk" ? (
+              <BulkImportForm state={state} onImported={onDrawAdded} />
+            ) : (
+              <DrawEntryForm onDrawAdded={onDrawAdded} state={state} />
+            )}
+          </div>
+          <div className="space-y-4">
+            <LastResult picks={user?.picks ?? []} />
+            <DrawHistoryTable
+              refresh={drawRefresh}
+              state={state}
+              onCleared={() => loadAnalytics(period, days, state)}
+            />
+          </div>
         </div>
 
-        {/* Saved picks */}
+        {/* PERFORMANCE INSIGHTS */}
+        {analytics && (
+          <PerformanceInsights
+            picks={user?.picks ?? []}
+            sumStats={analytics.sumStats}
+            isPremium={isPremium}
+          />
+        )}
+
+        {/* UPGRADE CARD — free users only */}
+        {user && !isPremium && <PremiumCard />}
+
+        {/* SAVED PICKS */}
         <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-          <h3 className="text-xl font-semibold">Saved picks</h3>
-          <p className="mt-1 text-sm text-slate-300">
-            Enter draw results above to automatically check these for hits.
+          <div className="flex items-center justify-between">
+            <h3 className="text-xl font-semibold">Saved picks</h3>
+            {user?.picks.length ? (
+              <span className="text-sm text-slate-400">
+                {user.picks.length} total
+                {checked > 0 && ` · ${hits}/${checked} hit`}
+              </span>
+            ) : null}
+          </div>
+          <p className="mt-1 text-sm text-slate-400">
+            Enter draw results above to automatically check for hits.
           </p>
 
           <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
@@ -268,7 +382,7 @@ export default function DashboardPage() {
                       ? "border border-cyan-400/40 bg-cyan-500/10"
                       : pick.isHit === false
                       ? "border border-red-500/20 bg-red-500/5"
-                      : "bg-slate-900/80"
+                      : "border border-white/8 bg-slate-900/60"
                   }`}
                 >
                   <div className="flex items-center justify-between">
@@ -288,9 +402,17 @@ export default function DashboardPage() {
                       </span>
                     )}
                   </div>
-                  <div className="mt-2 text-sm text-slate-400">Score: {pick.score}</div>
+                  <div className="mt-2 flex items-center gap-2 text-sm text-slate-400">
+                    <span>Score: {pick.score}</span>
+                    <span className="rounded-md bg-slate-800 px-1.5 py-0.5 text-xs">
+                      {pick.playType}
+                    </span>
+                    {pick.intendedPeriod && (
+                      <span className="text-xs text-slate-500">{pick.intendedPeriod}</span>
+                    )}
+                  </div>
                   <div className="mt-1 text-xs text-slate-500">
-                    {new Date(pick.createdAt).toLocaleString()}
+                    {pick.intendedDate ?? new Date(pick.createdAt).toLocaleDateString()}
                   </div>
                 </div>
               ))

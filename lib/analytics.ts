@@ -110,11 +110,14 @@ function getPositionCounts(history: string[]): Record<string, Record<string, num
   return pos;
 }
 
+// Normalize pairs so (a,b) and (b,a) are counted as the same pair
+function normPair(x: string, y: string) { return x <= y ? `${x}${y}` : `${y}${x}`; }
+
 function getPairCounts(history: string[]): { pair: string; count: number }[] {
   const pairCounts: Record<string, number> = {};
   for (const draw of history) {
     const [a, b, c] = draw.split("");
-    for (const pair of [`${a}${b}`, `${a}${c}`, `${b}${c}`]) {
+    for (const pair of [normPair(a, b), normPair(a, c), normPair(b, c)]) {
       pairCounts[pair] = (pairCounts[pair] || 0) + 1;
     }
   }
@@ -143,57 +146,16 @@ function getOverdueStats(history: string[]): OverdueStat[] {
 }
 
 function getStreakStats(history: string[]): StreakStat[] {
-  const streaks: Record<string, number> = {};
-  for (let i = 0; i <= 9; i++) streaks[i.toString()] = 0;
-
-  // Count streak from the most recent draw backwards
-  for (let i = history.length - 1; i >= 0; i--) {
-    const digits = new Set(history[i].split(""));
-    for (let d = 0; d <= 9; d++) {
-      const key = d.toString();
-      if (digits.has(key)) {
-        streaks[key] += 1;
-      } else {
-        // streak broken for this digit — don't extend further
-        if (streaks[key] === 0) continue; // hasn't started yet, keep at 0
-      }
-    }
-    break; // only check from the most recent draw outward
-  }
-
-  // Proper streak: consecutive draws from the end where digit appeared
-  const properStreaks: Record<string, number> = {};
-  for (let d = 0; d <= 9; d++) properStreaks[d.toString()] = 0;
-
-  for (let i = history.length - 1; i >= 0; i--) {
-    const digits = new Set(history[i].split(""));
-    let anyBroken = false;
-    for (let d = 0; d <= 9; d++) {
-      const key = d.toString();
-      if (digits.has(key)) {
-        properStreaks[key] += 1;
-      } else {
-        // mark that this digit's streak ends here — but keep going for others
-      }
-    }
-    if (anyBroken) break;
-  }
-
-  // Re-implement correctly: for each digit, count consecutive draws from the end
   const result: Record<string, number> = {};
   for (let d = 0; d <= 9; d++) {
     const key = d.toString();
     let streak = 0;
     for (let i = history.length - 1; i >= 0; i--) {
-      if (history[i].includes(key)) {
-        streak++;
-      } else {
-        break;
-      }
+      if (history[i].includes(key)) streak++;
+      else break;
     }
     result[key] = streak;
   }
-
   return Object.entries(result)
     .map(([digit, currentStreak]) => ({ digit, currentStreak }))
     .sort((a, b) => b.currentStreak - a.currentStreak);

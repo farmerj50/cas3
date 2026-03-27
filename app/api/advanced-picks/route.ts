@@ -10,10 +10,15 @@ export async function GET(req: Request) {
   const numDigits = Math.min(10, Math.max(4, parseInt(searchParams.get("digits") || "7")));
   const target = Math.min(100, Math.max(10, parseInt(searchParams.get("target") || "60")));
 
-  // Load draw history from DB (fall back to sample analytics)
+  const state = searchParams.get("state") || "GA";
+
+  // Load draw history for this state only (fall back to sample analytics)
   let history: string[] = [];
   try {
-    const draws = await prisma.draw.findMany({ orderBy: { drawDate: "asc" } });
+    const draws = await prisma.draw.findMany({
+      where: { state } as any,
+      orderBy: { drawDate: "asc" },
+    });
     history = draws.map((d) => d.numbers);
   } catch {
     // stale client — analytics will use sample

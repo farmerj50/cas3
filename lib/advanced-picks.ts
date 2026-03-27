@@ -41,16 +41,18 @@ function scorePick(
   const [a, b, c] = n.split("");
   // Invert rank so hot digits score higher (rank 0 = 10 pts, rank 9 = 1 pt)
   const ds = (10 - (digitRank[a] ?? 9)) + (10 - (digitRank[b] ?? 9)) + (10 - (digitRank[c] ?? 9));
-  const ps = (pairCounts[`${a}${b}`] || 0) + (pairCounts[`${a}${c}`] || 0) + (pairCounts[`${b}${c}`] || 0);
+  const ps = (pairCounts[normPair(a, b)] || 0) + (pairCounts[normPair(a, c)] || 0) + (pairCounts[normPair(b, c)] || 0);
   const diversity = new Set([a, b, c]).size === 3 ? 2 : 0;
   return { digitScore: ds, pairScore: ps, total: ds + ps + diversity };
 }
+
+function normPair(x: string, y: string) { return x <= y ? `${x}${y}` : `${y}${x}`; }
 
 function buildPairCounts(history: string[]): Record<string, number> {
   const m: Record<string, number> = {};
   for (const draw of history) {
     const [a, b, c] = draw.split("");
-    for (const pair of [`${a}${b}`, `${a}${c}`, `${b}${c}`]) {
+    for (const pair of [normPair(a, b), normPair(a, c), normPair(b, c)]) {
       m[pair] = (m[pair] || 0) + 1;
     }
   }

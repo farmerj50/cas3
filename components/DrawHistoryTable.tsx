@@ -12,20 +12,39 @@ type Draw = {
 
 type Props = {
   refresh?: number;
+  state?: string;
+  onCleared?: () => void;
 };
 
-export default function DrawHistoryTable({ refresh }: Props) {
+export default function DrawHistoryTable({ refresh, state = "GA", onCleared }: Props) {
   const [draws, setDraws] = useState<Draw[]>([]);
   const [loading, setLoading] = useState(true);
+  const [clearing, setClearing] = useState(false);
+  const [confirmClear, setConfirmClear] = useState(false);
 
-  useEffect(() => {
-    fetch("/api/draws?limit=30")
+  function load() {
+    setLoading(true);
+    fetch(`/api/draws?limit=30&state=${state}`)
       .then((r) => r.json())
       .then((d) => {
         setDraws(d.draws || []);
         setLoading(false);
       });
-  }, [refresh]);
+  }
+
+  useEffect(() => {
+    load();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refresh, state]);
+
+  async function handleClear() {
+    setClearing(true);
+    await fetch(`/api/draws?state=${state}`, { method: "DELETE" });
+    setClearing(false);
+    setConfirmClear(false);
+    setDraws([]);
+    onCleared?.();
+  }
 
   const periodColor: Record<string, string> = {
     midday: "text-amber-300 bg-amber-500/10 border-amber-500/20",
@@ -35,12 +54,44 @@ export default function DrawHistoryTable({ refresh }: Props) {
 
   return (
     <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-      <h3 className="text-xl font-semibold text-white">Draw history</h3>
-      <p className="mt-1 text-sm text-slate-300">
-        {draws.length === 0
-          ? "No draws entered yet. Add results above to build real analytics."
-          : `${draws.length} draw${draws.length !== 1 ? "s" : ""} on record.`}
-      </p>
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h3 className="text-xl font-semibold text-white">Draw history</h3>
+          <p className="mt-1 text-sm text-slate-300">
+            {draws.length === 0
+              ? "No draws yet. Add results above to build real analytics."
+              : `${draws.length} draw${draws.length !== 1 ? "s" : ""} on record.`}
+          </p>
+        </div>
+
+        {draws.length > 0 && !confirmClear && (
+          <button
+            onClick={() => setConfirmClear(true)}
+            className="shrink-0 rounded-xl border border-red-500/20 bg-red-500/5 px-3 py-1.5 text-xs text-red-400 transition hover:bg-red-500/15"
+          >
+            Clear all
+          </button>
+        )}
+
+        {confirmClear && (
+          <div className="flex shrink-0 items-center gap-2">
+            <span className="text-xs text-slate-400">Delete all draws?</span>
+            <button
+              onClick={handleClear}
+              disabled={clearing}
+              className="rounded-xl bg-red-500 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
+            >
+              {clearing ? "Deleting…" : "Yes, delete"}
+            </button>
+            <button
+              onClick={() => setConfirmClear(false)}
+              className="rounded-xl border border-white/10 px-3 py-1.5 text-xs text-slate-400 hover:text-white"
+            >
+              Cancel
+            </button>
+          </div>
+        )}
+      </div>
 
       {loading ? (
         <div className="mt-4 text-sm text-slate-500">Loading...</div>
@@ -49,7 +100,7 @@ export default function DrawHistoryTable({ refresh }: Props) {
           No draws yet
         </div>
       ) : (
-        <div className="mt-5 max-h-[360px] overflow-y-auto space-y-2 pr-1">
+        <div className="mt-5 max-h-90 overflow-y-auto space-y-2 pr-1">
           {draws.map((draw) => (
             <div
               key={draw.id}

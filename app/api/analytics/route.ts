@@ -6,8 +6,9 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const period = searchParams.get("period") || "all";
   const days = searchParams.get("days");
+  const state = searchParams.get("state") || "GA";
 
-  const where: Record<string, unknown> = {};
+  const where: Record<string, unknown> = { state };
   if (period !== "all") where.period = period;
   if (days && days !== "all") {
     const cutoff = new Date();
@@ -17,13 +18,13 @@ export async function GET(req: Request) {
 
   let draws: string[] = [];
   try {
-    const dbDraws = await prisma.draw.findMany({
+    const dbDraws = await (prisma.draw.findMany as any)({
       where,
       orderBy: { drawDate: "asc" },
     });
-    draws = dbDraws.map((d) => d.numbers);
+    draws = (dbDraws as { numbers: string }[]).map((d) => d.numbers);
   } catch {
-    // Draw table not yet available (stale Prisma client) — fall back to sample data
+    // Stale Prisma client — fall back to sample data
   }
 
   const analytics = buildAnalytics(draws.length >= 20 ? draws : undefined);

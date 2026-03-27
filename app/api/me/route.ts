@@ -9,11 +9,16 @@ export async function GET() {
     return NextResponse.json({ user: null }, { status: 401 });
   }
 
-  const user = await prisma.user.findUnique({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const user = await (prisma.user.findUnique as any)({
     where: { id: current.userId },
     select: {
       id: true,
       email: true,
+      tier: true,
+      state: true,
+      subscriptionStatus: true,
+      premiumExpiresAt: true,
       createdAt: true,
       picks: {
         orderBy: { createdAt: "desc" },
