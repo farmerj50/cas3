@@ -2,6 +2,10 @@
   "name": "cash3-probability",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "npm@10.9.3",
+  "engines": {
+    "node": "20.19.4"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",
