@@ -1,4 +1,14 @@
-const { spawn } = require("node:child_process");
+const { spawn, execSync } = require("node:child_process");
+
+// Run migrations before starting the server
+try {
+  console.log("Running database migrations...");
+  execSync("npx prisma migrate deploy", { stdio: "inherit" });
+  console.log("Migrations complete.");
+} catch (err) {
+  console.error("Migration failed:", err.message);
+  process.exit(1);
+}
 
 const port = process.env.PORT || "3000";
 const nextBin = require.resolve("next/dist/bin/next");

@@ -4,11 +4,11 @@
   "private": true,
   "packageManager": "npm@10.9.3",
   "engines": {
-    "node": "20.19.4"
+    "node": ">=20.19.4"
   },
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && prisma migrate deploy && next build",
+    "build": "prisma generate && next build",
     "start": "node scripts/start.cjs",
     "lint": "eslint",
     "cap:sync": "npx cap sync",
