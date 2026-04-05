@@ -8,13 +8,20 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "prisma generate && prisma migrate deploy && next build",
     "start": "node scripts/start.cjs",
-    "lint": "eslint"
+    "lint": "eslint",
+    "cap:sync": "npx cap sync",
+    "cap:android": "npx cap open android",
+    "cap:ios": "npx cap open ios"
   },
   "dependencies": {
+    "@capacitor/android": "^8.3.0",
+    "@capacitor/app": "^8.1.0",
     "@capacitor/core": "^8.2.0",
+    "@capacitor/ios": "^8.3.0",
     "@capacitor/push-notifications": "^8.0.2",
+    "@capacitor/splash-screen": "^8.0.1",
     "@prisma/client": "^6.5.0",
     "bcryptjs": "^3.0.3",
     "firebase-admin": "^10.3.0",
@@ -30,7 +37,8 @@
     "picomatch": "^4.0.4"
   },
   "devDependencies": {
-    "@capacitor/cli": "^7.6.0",
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8.3.0",
     "@tailwindcss/postcss": "^4",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20",

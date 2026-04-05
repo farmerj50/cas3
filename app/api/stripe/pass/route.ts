@@ -4,8 +4,8 @@ import { getCurrentUserFromCookie } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 const PASS_OPTIONS = {
-  "1day": { name: "Cash 3 Edge — 1-Day Pass", amount: 99,  days: 1 },
-  "7day": { name: "Cash 3 Edge — 7-Day Pass", amount: 299, days: 7 },
+  "1day": { priceId: process.env.STRIPE_PRICE_PASS_1DAY!, days: 1 },
+  "7day": { priceId: process.env.STRIPE_PRICE_PASS_7DAY!, days: 7 },
 } as const;
 
 type PassType = keyof typeof PASS_OPTIONS;
@@ -39,14 +39,7 @@ export async function POST(req: Request) {
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       customer: customerId,
-      line_items: [{
-        price_data: {
-          currency: "usd",
-          product_data: { name: pass.name },
-          unit_amount: pass.amount,
-        },
-        quantity: 1,
-      }],
+      line_items: [{ price: pass.priceId, quantity: 1 }],
       metadata: {
         userId: current.userId,
         passType: type,
