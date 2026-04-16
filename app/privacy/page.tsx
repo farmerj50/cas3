@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 
 const LAST_UPDATED = "March 23, 2026";
 const APP_NAME = "Cash 3 Edge";
-const CONTACT_EMAIL = "privacy@cash3edge.com"; // update before submitting to App Store
+const CONTACT_EMAIL = "cas3.support@gmail.com";
 
 export default function PrivacyPage() {
   return (
