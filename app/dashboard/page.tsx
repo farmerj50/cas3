@@ -422,6 +422,7 @@ export default function DashboardPage() {
             )}
           </div>
         </div>
+      </div>
       <Disclaimer className="px-6 pb-6 pt-2" />
     </main>
   );
