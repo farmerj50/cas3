@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Disclaimer from "@/components/Disclaimer";
 import AppLogo from "@/components/AppLogo";
 import LoginPreview from "@/components/LoginPreview";
 
@@ -77,7 +78,7 @@ export default function LoginPage() {
                 Sharpen your edge with smarter picks and real pattern insight.
               </h1>
               <p className="mt-5 max-w-lg text-lg leading-8 text-slate-300">
-                Track trends, save strategies, review draw history, and generate
+                Track trends, save strategies, analyze entered draw patterns, and generate
                 ranked plays with a dashboard built to feel fast, modern, and
                 addictive.
               </p>
@@ -192,6 +193,7 @@ export default function LoginPage() {
           <div className="mt-6 text-center text-xs uppercase tracking-[0.22em] text-slate-500 lg:hidden">
             Smart picks · Ranked plays · Cleaner strategy
           </div>
+          <Disclaimer className="mt-4 px-2" />
         </section>
 
       </div>

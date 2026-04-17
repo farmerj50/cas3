@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { useRouter } from "next/navigation";
+import Disclaimer from "@/components/Disclaimer";
 import HotColdChart from "@/components/HotColdChart";
 import PickGenerator from "@/components/PickGenerator";
 import TopPairsCard from "@/components/TopPairsCard";
@@ -421,7 +422,7 @@ export default function DashboardPage() {
             )}
           </div>
         </div>
-      </div>
+      <Disclaimer className="px-6 pb-6 pt-2" />
     </main>
   );
 }

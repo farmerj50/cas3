@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Disclaimer from "@/components/Disclaimer";
 import AppLogo from "@/components/AppLogo";
 import LoginPreview from "@/components/LoginPreview";
 
@@ -77,7 +78,7 @@ export default function RegisterPage() {
                 Stop guessing. Start playing with a real edge.
               </h1>
               <p className="mt-5 max-w-lg text-lg leading-8 text-slate-300">
-                Enter real draw history from your state, run the reduction engine,
+                Enter draw data from your state, run the reduction engine,
                 and get ranked plays backed by actual frequency data — not luck.
               </p>
             </div>
@@ -186,6 +187,7 @@ export default function RegisterPage() {
           <div className="mt-6 text-center text-xs uppercase tracking-[0.22em] text-slate-500 lg:hidden">
             Smart picks · Ranked plays · Cleaner strategy
           </div>
+          <Disclaimer className="mt-4 px-2" />
         </section>
 
       </div>

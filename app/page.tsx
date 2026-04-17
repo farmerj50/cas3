@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Disclaimer from "@/components/Disclaimer";
 
 const FUNNEL_STEPS = [
   { label: "All combinations", count: "1,000", pct: 100, color: "bg-slate-700" },
@@ -82,10 +83,10 @@ export default function HomePage() {
 
             <ul className="mt-6 space-y-2 text-sm text-slate-400">
               {[
-                "Track real draw history and see your state's actual patterns",
+                "Track number trends by analyzing patterns from entered draw data",
                 "Hot/cold digits, position breakdown, pair frequency, sum distribution",
                 "Saved picks with straight / box / combo play-type tracking",
-                "Automatic hit checking when you enter draw results",
+                "Automatic hit checking when you enter your draw data",
               ].map((item) => (
                 <li key={item} className="flex items-start gap-2">
                   <span className="mt-0.5 text-cyan-400">✓</span>
@@ -215,6 +216,7 @@ export default function HomePage() {
               Login
             </Link>
           </div>
+          <Disclaimer className="mt-8 px-4" />
         </div>
 
       </div>
