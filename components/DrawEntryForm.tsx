@@ -50,12 +50,12 @@ export default function DrawEntryForm({ onDrawAdded, state = "GA" }: Props) {
     <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
       <h3 className="text-xl font-semibold text-white">Add draw result</h3>
       <p className="mt-1 text-sm text-slate-300">
-        Enter the actual winning number. Your saved picks will be checked automatically.
+        Enter the drawn number. Your saved picks will be checked automatically.
       </p>
 
       <form onSubmit={handleSubmit} className="mt-5 space-y-4">
         <div>
-          <label className="mb-1.5 block text-sm text-slate-400">Winning number</label>
+          <label className="mb-1.5 block text-sm text-slate-400">Draw result</label>
           <input
             type="text"
             maxLength={3}

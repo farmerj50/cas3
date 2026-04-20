@@ -72,10 +72,10 @@ export default function LoginPage() {
 
             <div className="mt-8 max-w-xl">
               <p className="mb-3 text-sm font-medium uppercase tracking-[0.28em] text-cyan-300/85">
-                Daily Cash 3 Intelligence
+                Cash 3 Edge
               </p>
               <h1 className="text-5xl font-bold leading-tight tracking-tight">
-                Sharpen your edge with smarter picks and real pattern insight.
+                Explore number frequency trends and track your draw history in one place.
               </h1>
               <p className="mt-5 max-w-lg text-lg leading-8 text-slate-300">
                 Track trends, save strategies, analyze entered draw patterns, and generate
@@ -85,7 +85,7 @@ export default function LoginPage() {
             </div>
 
             <div className="mt-8 flex flex-wrap gap-3">
-              {["Smart Picks", "Reduction Funnel", "Draw Tracking", "Saved Plays"].map(
+              {["Number Trends", "Reduction Funnel", "Draw Tracking", "Saved Plays"].map(
                 (item) => (
                   <span
                     key={item}
@@ -191,7 +191,7 @@ export default function LoginPage() {
           </div>
 
           <div className="mt-6 text-center text-xs uppercase tracking-[0.22em] text-slate-500 lg:hidden">
-            Smart picks · Ranked plays · Cleaner strategy
+            Number trends · Draw tracking · Frequency analysis
           </div>
           <Disclaimer className="mt-4 px-2" />
         </section>

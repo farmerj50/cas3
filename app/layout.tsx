@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Cash 3 Edge",
-  description: "Professional Pick-3 lottery analytics — hot digits, smart picks, real edge.",
+  description: "Cash 3 Edge — an independent number tracking and visualization tool for entertainment purposes. Not affiliated with any lottery organization.",
   applicationName: "Cash 3 Edge",
   appleWebApp: {
     capable: true,

@@ -75,7 +75,7 @@ export default function RegisterPage() {
                 Join Cash 3 Edge
               </p>
               <h1 className="text-5xl font-bold leading-tight tracking-tight">
-                Stop guessing. Start playing with a real edge.
+                Track number trends and visualize draw patterns for entertainment.
               </h1>
               <p className="mt-5 max-w-lg text-lg leading-8 text-slate-300">
                 Enter draw data from your state, run the reduction engine,
@@ -185,7 +185,7 @@ export default function RegisterPage() {
           </div>
 
           <div className="mt-6 text-center text-xs uppercase tracking-[0.22em] text-slate-500 lg:hidden">
-            Smart picks · Ranked plays · Cleaner strategy
+            Number trends · Draw tracking · Frequency analysis
           </div>
           <Disclaimer className="mt-4 px-2" />
         </section>

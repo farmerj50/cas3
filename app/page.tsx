@@ -63,7 +63,7 @@ export default function HomePage() {
 
         {/* Hero */}
         <div className="mb-4 inline-flex rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-300">
-          3 mathematical systems · hit tracking · real draw analytics
+          3 analysis methods · draw tracking · frequency visualization
         </div>
 
         <div className="grid items-start gap-16 lg:grid-cols-2">
@@ -185,7 +185,7 @@ export default function HomePage() {
             ))}
           </div>
 
-          <p className="mt-4 text-xs text-slate-500">Sample data for illustration — your dashboard uses your state's real draw history.</p>
+          <p className="mt-4 text-xs text-slate-500">Sample data for illustration — enter your own draw data to see trends for your state.</p>
         </div>
 
         {/* Feature grid */}
@@ -204,7 +204,7 @@ export default function HomePage() {
 
         {/* Bottom CTA */}
         <div className="mt-24 rounded-3xl border border-white/10 bg-linear-to-br from-cyan-500/10 to-violet-500/10 p-12 text-center">
-          <h2 className="text-3xl font-bold">Start tracking smarter</h2>
+          <h2 className="text-3xl font-bold">Start tracking your draws</h2>
           <p className="mx-auto mt-3 max-w-xl text-slate-300">
             Free account. Enter your state's draws. See real patterns. Use the reduction engine to build a play list you can actually stand behind.
           </p>

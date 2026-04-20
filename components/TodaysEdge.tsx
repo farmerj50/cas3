@@ -90,7 +90,7 @@ export default function TodaysEdge({ analytics }: { analytics: Analytics }) {
 
       {!analytics.usingRealData && (
         <div className="relative mt-4 rounded-xl border border-amber-500/20 bg-amber-500/8 px-3 py-2 text-xs text-amber-300/80">
-          Based on sample data — enter real draws to unlock your state&apos;s actual edge.
+          Based on sample data — enter your draw history to see frequency trends for your state.
         </div>
       )}
     </div>

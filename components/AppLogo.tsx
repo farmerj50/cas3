@@ -38,7 +38,7 @@ export default function AppLogo({
             Cash 3 Edge
           </div>
           <div className="text-xs uppercase tracking-[0.25em] text-cyan-300/80">
-            Smart Pick Engine
+            Number Tracker
           </div>
         </div>
       )}
