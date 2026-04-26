@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Disclaimer from "@/components/Disclaimer";
 import AppLogo from "@/components/AppLogo";
 import LoginPreview from "@/components/LoginPreview";
+import PasswordInput from "@/components/PasswordInput";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -138,17 +139,20 @@ export default function LoginPage() {
               </div>
 
               <div>
-                <label htmlFor="password" className="mb-2 block text-sm font-medium text-slate-300">
-                  Password
-                </label>
-                <input
+                <div className="mb-2 flex items-center justify-between">
+                  <label htmlFor="password" className="block text-sm font-medium text-slate-300">
+                    Password
+                  </label>
+                  <Link href="/forgot-password" className="text-xs text-cyan-300 hover:text-cyan-200">
+                    Forgot password?
+                  </Link>
+                </div>
+                <PasswordInput
                   id="password"
-                  type="password"
-                  autoComplete="current-password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-4 text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-400/50 focus:ring-2 focus:ring-cyan-400/20"
+                  onChange={setPassword}
                   placeholder="Enter your password"
+                  autoComplete="current-password"
                   required
                 />
               </div>

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Disclaimer from "@/components/Disclaimer";
 import AppLogo from "@/components/AppLogo";
 import LoginPreview from "@/components/LoginPreview";
+import PasswordInput from "@/components/PasswordInput";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -140,14 +141,12 @@ export default function RegisterPage() {
                 <label htmlFor="password" className="mb-2 block text-sm font-medium text-slate-300">
                   Password
                 </label>
-                <input
+                <PasswordInput
                   id="password"
-                  type="password"
-                  autoComplete="new-password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-4 text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-400/50 focus:ring-2 focus:ring-cyan-400/20"
+                  onChange={setPassword}
                   placeholder="Choose a password"
+                  autoComplete="new-password"
                   required
                 />
               </div>
