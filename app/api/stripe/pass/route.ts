@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { stripe } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
 import { getCurrentUserFromCookie } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -24,6 +24,7 @@ export async function POST(req: Request) {
       select: { id: true, email: true, stripeCustomerId: true },
     }) as { id: string; email: string; stripeCustomerId: string | null };
 
+    const stripe = getStripe();
     let customerId = user.stripeCustomerId;
     if (!customerId) {
       const customer = await stripe.customers.create({ email: user.email });
@@ -50,8 +51,9 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ url: session.url });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Stripe pass error:", error);
-    return NextResponse.json({ error: "Failed to create checkout session" }, { status: 500 });
+    const msg = error?.message ?? "Failed to create checkout session";
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
