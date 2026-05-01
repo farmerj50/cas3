@@ -1,23 +1,13 @@
-import nodemailer from "nodemailer";
-
-function getTransporter() {
-  return nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT ?? 587),
-    secure: process.env.SMTP_SECURE === "true",
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  });
-}
+import { Resend } from "resend";
 
 export async function sendPasswordResetEmail(toEmail: string, resetUrl: string) {
-  const from = process.env.SMTP_FROM ?? process.env.SMTP_USER;
-  const transporter = getTransporter();
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) throw new Error("RESEND_API_KEY is not set.");
 
-  await transporter.sendMail({
-    from: `"Cash 3 Edge" <${from}>`,
+  const resend = new Resend(apiKey);
+
+  await resend.emails.send({
+    from: process.env.SMTP_FROM ?? "onboarding@resend.dev",
     to: toEmail,
     subject: "Reset your Cash 3 Edge password",
     html: `
