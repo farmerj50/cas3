@@ -41,12 +41,14 @@ export async function POST(req: Request) {
       ? process.env.STRIPE_PRICE_PREMIUM_ANNUAL!
       : process.env.STRIPE_PRICE_PREMIUM_MONTHLY!;
 
+    const base = (process.env.NEXT_PUBLIC_APP_URL ?? "https://www.cas3.app").replace(/\/$/, "");
+
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       customer: customerId,
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/upgrade?canceled=1`,
+      success_url: `${base}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${base}/upgrade?canceled=1`,
       allow_promotion_codes: true,
       metadata: { userId: dbUser.id },
     });
