@@ -23,7 +23,7 @@ export default function PassButton({ passType, label, className }: Props) {
       });
       const data = await res.json().catch(() => null);
       if (!res.ok || !data?.url) {
-        setError(res.status === 500 ? "Payment config error — check STRIPE_SECRET_KEY." : (data?.error || "Something went wrong."));
+        setError(data?.error || "Something went wrong. Please try again.");
         setLoading(false);
         return;
       }
