@@ -59,13 +59,9 @@ const FEATURES = [
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-slate-950 text-white">
-      <div className="mx-auto max-w-6xl px-6 py-20">
+      <div className="mx-auto max-w-6xl px-6 pt-10 pb-20 lg:py-20">
 
         {/* Hero */}
-        <div className="mb-4 inline-flex rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-300">
-          3 analysis methods · draw tracking · frequency visualization
-        </div>
-
         <div className="grid items-start gap-16 lg:grid-cols-2">
           <div>
             <h1 className="text-5xl font-bold leading-tight md:text-6xl">
