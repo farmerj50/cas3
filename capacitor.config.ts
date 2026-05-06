@@ -7,7 +7,6 @@ const config: CapacitorConfig = {
   server: {
     url: 'https://www.cas3.app',
     cleartext: false,
-    hostname: 'app.cas3.app',
   },
   plugins: {
     SplashScreen: {

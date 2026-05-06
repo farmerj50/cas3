@@ -160,18 +160,20 @@ export default function DashboardPage() {
       <div className="mx-auto max-w-6xl space-y-6">
 
         {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          {/* Brand + state */}
           <div>
-            <div className="text-xs uppercase tracking-[0.25em] text-slate-500">
+            <div className="text-xs font-semibold uppercase tracking-widest text-cyan-400/70">
+              Cash 3 Edge
+            </div>
+            <div className="mt-0.5 text-sm font-medium text-slate-300">
               {getStateMeta(state)?.name} · {getStateMeta(state)?.game}
             </div>
-            <h1 className="text-2xl font-bold text-white">{user?.email}</h1>
           </div>
-          <div className="flex items-center gap-3">
-            <StateSelector
-              current={state}
-              onChange={(code) => setState(code)}
-            />
+
+          {/* Controls */}
+          <div className="flex flex-wrap items-center gap-2">
+            <StateSelector current={state} onChange={(code) => setState(code)} />
             <CountdownTimer />
             {passTimeLeft && (
               <span className={`rounded-xl border px-3 py-1.5 text-xs font-semibold ${
@@ -183,9 +185,20 @@ export default function DashboardPage() {
               </span>
             )}
             {isPremium && user?.tier === "premium" && <ManageBillingButton />}
+
+            {/* User chip */}
+            <div className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-cyan-500/20 text-xs font-bold text-cyan-300">
+                {user?.email?.[0]?.toUpperCase()}
+              </div>
+              <span className="hidden max-w-35 truncate text-xs text-slate-400 sm:block">
+                {user?.email}
+              </span>
+            </div>
+
             <button
               onClick={handleLogout}
-              className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-white/10"
+              className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10"
             >
               Logout
             </button>
