@@ -52,13 +52,11 @@ export default function CountdownTimer() {
   if (!next) return null;
 
   return (
-    <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5">
-      <div className="text-[10px] uppercase tracking-wider text-slate-500">
-        Next draw · {next.label} ET
-      </div>
-      <div className="font-mono text-base font-semibold tabular-nums text-cyan-300">
+    <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+      <span className="text-xs text-slate-400">{next.label}</span>
+      <span className="font-mono text-sm font-semibold tabular-nums text-cyan-300">
         {fmt(next.diff)}
-      </div>
+      </span>
     </div>
   );
 }
